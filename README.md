@@ -1,31 +1,20 @@
-# Soldered NAZIV PROIZVODA ESPHome Component
+# Soldered Slider Potentiometer With Qwiic ESPHome Component
 
-| ![Product name](https://upload.wikimedia.org/wikipedia/commons/8/8f/Example_image.svg) |
-| :------------------------------------------------------------------------------------: |
-|                      [NAZIV PROIZVODA](https://www.solde.red/SKU)                      |
+| ![Slider Potentiometer With Qwiic](https://cms.soldered.com/products/333131/media/333131_featured-photo_5bd23c.jpg) |
+| :------------------------------------------------------------------------------------------------------------------: |
+|                           [Slider Potentiometer With Qwiic](https://www.solde.red/333131)                            |
 
-OPIS PROIZVODA + LINK NA [Qwiic ecosystem](https://soldered.com/collections/qwiic-ecosystem).
+A linear 10k slider potentiometer, like the ones found on mixing desks and other audio equipment. An onboard ATtiny404
+samples the slider with its 10-bit ADC and reports the reading over I2C, so no analog pin is needed. The board is part
+of the [Qwiic ecosystem](https://soldered.com/collections/qwiic-ecosystem).
 
-External ESPHome component for NAZIV PROIZVODA.
+External ESPHome component for the Soldered Slider Potentiometer with Qwiic. It is a port of the
+[Soldered Slider Potentiometer with easyC Arduino library](https://github.com/SolderedElectronics/Soldered-Slider-Potentiometer-with-easyC-Arduino-Library)
+and publishes the slider position in percent and/or the raw ADC value as ESPHome
+[sensors](https://esphome.io/components/sensor/).
 
-### Using the template
-
-Before publishing a new component make sure to replace:
-
-- `NAZIV PROIZVODA`, `OPIS PROIZVODA`, product image, and SKU link in this README
-- the `components/soldered_esphome_component_template/` directory name with the real component name
-- `soldered_esphome_component_template` namespace, `SolderedEsphomeComponentTemplate` class name, and `CODEOWNERS` in `__init__.py`, matching names in the `.h`/`.cpp` files and their `#include`
-- `CONFIG_SCHEMA` and `to_code()` in `__init__.py` with the real config options and codegen
-- the `TAG` string and `dump_config()` output in the `.cpp` file
-- `github://SolderedElectronics/<repo>` source path and the sample config in the "Usage" section below
-- `examples/basic.yaml` (rename/add examples as needed, keep `external_components.source.path` pointing at `../components`)
-- `@file`, `@brief`, `@author` Doxygen comments in the `.h`/`.cpp` files to describe the real API
-
-Also make sure to add more examples if the component supports multiple boards/modes (see `Soldered-Inkplate-ESPHome` for a repo with several board variants).
-
-Run `pip install clang-format==13.0.1 && find components -name "*.cpp" -o -name "*.h" | xargs clang-format -i` before committing to auto-format the component against ESPHome's own style (`.clang-format`, copied from the ESPHome core repo). CI runs the same check on every push/PR via `.github/workflows/format_check.yml` and fails on unformatted code. `.github/workflows/build.yml` compiles every YAML under `examples/` on every push/PR.
-
-**Remove this section of README after everything is done!**
+> For the plain [Slider Potentiometer Breakout](https://www.solde.red/333130) without Qwiic (analog output), use
+> ESPHome's built-in [`adc`](https://esphome.io/components/sensor/adc/) component instead.
 
 ## Repository Contents
 
@@ -38,17 +27,45 @@ Reference this repo directly from your own ESPHome YAML (no need to clone it loc
 
 ```yaml
 external_components:
-  - source: github://SolderedElectronics/<repo>
-    components: [soldered_esphome_component_template]
+  - source: github://SolderedElectronics/Soldered-Slider-Potentiometer-Qwiic-ESPHome-Component
+    components: [soldered_slider_potentiometer]
 
-soldered_esphome_component_template:
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+
+sensor:
+  - platform: soldered_slider_potentiometer
+    position:
+      name: "Slider Position"
 ```
+
+On every update the component reads the slider once and publishes the raw value (`0` - `1023`) and the position
+(`raw * 100 / 1023`, so `0` - `100` %) to whichever of the two sensors are configured. To only send updates when the
+slider actually moves, add a [`delta`](https://esphome.io/components/sensor/#delta) filter to the sensor.
 
 See [`examples/basic.yaml`](examples/basic.yaml) for a full working example.
 
+### Configuration variables
+
+- **position** (*Optional*): slider position in percent (`0` - `100`). All options from
+  [Sensor](https://esphome.io/components/sensor/#config-sensor).
+- **raw** (*Optional*): raw 10-bit ADC reading (`0` - `1023`). All options from
+  [Sensor](https://esphome.io/components/sensor/#config-sensor).
+- **address** (*Optional*, int): I2C address of the board. Defaults to `0x30`; can be set to `0x30` - `0x37` with the
+  board's three address-select switches (each one adds 1, 2 or 4).
+- **update_interval** (*Optional*, [Time](https://esphome.io/guides/configuration-types#config-time)): how often to
+  read the slider. Defaults to `1s`.
+- **i2c_id** (*Optional*, [ID](https://esphome.io/guides/configuration-types#config-id)): I2C bus to use, if there is
+  more than one.
+
+At least one of `position` or `raw` must be set.
+
 ### Hardware design
 
-You can find hardware design for this board in the _NAZIV PROIZVODA_ hardware repository.
+You can find hardware design for this board in the
+[_Slider potentiometer breakout qwiic_](https://github.com/SolderedElectronics/Slider-potentiometer-breakout-qwiic-hardware-design)
+hardware repository.
 
 ### Documentation
 
